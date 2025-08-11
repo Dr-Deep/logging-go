@@ -19,6 +19,7 @@ linters:
     - gochecknoglobals
     - godot
     - gochecknoinits
+    - varnamelen
 
   # All available settings of specific linters.
   settings:
