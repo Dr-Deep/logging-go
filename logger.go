@@ -53,7 +53,7 @@ func NewLogger(file *os.File) (logger *Logger) {
 		logger = &Logger{
 			File:   file,
 			Level:  defaultLogLevel,
-			Writer: bufio.NewWriter(&bytes.Buffer{}),
+			Writer: bufio.NewWriter(os.Stdout),
 		}
 	} else {
 		logger = &Logger{
