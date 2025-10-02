@@ -47,7 +47,9 @@ type Logger struct {
 }
 
 // NewLogger creates a new Logger instance writing to the given file (or stdout if nil).
-func NewLogger(file *os.File) (logger *Logger) {
+func NewLogger(file *os.File) *Logger {
+	var logger *Logger
+
 	if file == nil {
 		logger = &Logger{
 			File:   file,

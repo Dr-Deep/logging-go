@@ -15,8 +15,9 @@ func (logger *Logger) Log(level Level, logType string, messageParts ...string) {
 		return
 	}
 
-	// assemble our log line
 	var rawBuf bytes.Buffer
+
+	// assemble our log line
 	fmt.Fprintf(
 		&rawBuf,
 		"[%s]-[%s]-[%s] ", time.Now().Format("2006-01-02T15:04:05.000Z"), logLevelDisplayNames[level], logType,
@@ -37,6 +38,7 @@ func (logger *Logger) Log(level Level, logType string, messageParts ...string) {
 	if _, err := logger.Writer.Write(rawBuf.Bytes()); err != nil {
 		panic(err)
 	}
+
 	if err := logger.Writer.Flush(); err != nil {
 		panic(err)
 	}
@@ -48,6 +50,7 @@ func (logger *Logger) Log(level Level, logType string, messageParts ...string) {
 func (logger *Logger) Debug(messageParts ...string) {
 	pc, _, _, ok := runtime.Caller(1)
 	funcname := runtime.FuncForPC(pc).Name()
+
 	if !ok {
 		funcname = unknownFuncName
 	}
@@ -59,6 +62,7 @@ func (logger *Logger) Debug(messageParts ...string) {
 func (logger *Logger) Info(messageParts ...string) {
 	pc, _, _, ok := runtime.Caller(1)
 	funcname := runtime.FuncForPC(pc).Name()
+
 	if !ok {
 		funcname = unknownFuncName
 	}
@@ -70,6 +74,7 @@ func (logger *Logger) Info(messageParts ...string) {
 func (logger *Logger) Error(messageParts ...string) {
 	pc, _, _, ok := runtime.Caller(1)
 	funcname := runtime.FuncForPC(pc).Name()
+
 	if !ok {
 		funcname = unknownFuncName
 	}
@@ -81,6 +86,7 @@ func (logger *Logger) Error(messageParts ...string) {
 func (logger *Logger) Fatal(messageParts ...string) {
 	pc, _, _, ok := runtime.Caller(1)
 	funcname := runtime.FuncForPC(pc).Name()
+
 	if !ok {
 		funcname = unknownFuncName
 	}
