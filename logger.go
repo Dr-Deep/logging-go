@@ -48,23 +48,15 @@ type Logger struct {
 
 // NewLogger creates a new Logger instance writing to the given file (or stdout if nil).
 func NewLogger(file *os.File) *Logger {
-	var logger *Logger
-
 	if file == nil {
-		logger = &Logger{
-			File:   file,
-			Level:  defaultLogLevel,
-			Writer: bufio.NewWriter(os.Stdout),
-		}
-	} else {
-		logger = &Logger{
-			File:   file,
-			Level:  defaultLogLevel,
-			Writer: bufio.NewWriter(file),
-		}
+		file = os.Stdout
 	}
 
-	return logger
+	return &Logger{
+		File:   file,
+		Level:  defaultLogLevel,
+		Writer: bufio.NewWriter(file),
+	}
 }
 
 // Close flushes buffered log output and closes the underlying file if present.
