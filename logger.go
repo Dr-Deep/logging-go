@@ -1,16 +1,13 @@
+// Package logging provides a simple thread-safe logging facility.
 package logging
 
 import (
 	"bufio"
-	"bytes"
-	"fmt"
 	"os"
-	"runtime"
 	"sync"
-	"time"
 )
 
-// Logging Level
+// Level represents the severity of a log message.
 type Level int
 
 const (
@@ -41,6 +38,7 @@ var (
 	}
 )
 
+// Logger represents a thread-safe logger with level filtering and buffered output.
 type Logger struct {
 	sync.Mutex
 	File   *os.File
@@ -48,6 +46,7 @@ type Logger struct {
 	Level  Level
 }
 
+// NewLogger creates a new Logger instance writing to the given file (or stdout if nil).
 func NewLogger(file *os.File) (logger *Logger) {
 	if file == nil {
 		logger = &Logger{
@@ -66,85 +65,15 @@ func NewLogger(file *os.File) (logger *Logger) {
 	return logger
 }
 
+// Close flushes buffered log output and closes the underlying file if present.
 func (logger *Logger) Close() error {
-	flushErr := logger.Writer.Flush()
-	closeErr := logger.File.Close()
-	if flushErr != nil {
-		return flushErr
-	}
-
-	return closeErr
-}
-
-func (logger *Logger) Log(level Level, logType string, messageParts ...string) {
-	// check if we log on the right level
-	if level < logger.Level {
-		return
-	}
-
-	// assemble our log line
-	var rawBuf bytes.Buffer
-	fmt.Fprintf(
-		&rawBuf,
-		"[%s]-[%s]-[%s] ", time.Now().Format("2006-01-02T15:04:05.000Z"), logLevelDisplayNames[level], logType,
-	)
-	for i, p := range messageParts {
-		rawBuf.WriteString(p)
-
-		if i != len(messageParts)-1 {
-			rawBuf.WriteString(" : ")
-		}
-	}
-	rawBuf.WriteRune('\n')
-
-	// output line
-	logger.Lock()
-	if _, err := logger.Writer.Write(rawBuf.Bytes()); err != nil {
-		panic(err)
-	}
 	if err := logger.Writer.Flush(); err != nil {
-		panic(err)
-	}
-	logger.Unlock()
-}
-
-func (logger *Logger) Debug(messageParts ...string) {
-	pc, _, _, ok := runtime.Caller(1)
-	funcname := runtime.FuncForPC(pc).Name()
-	if !ok {
-		funcname = unknownFuncName
+		return &FlushError{Err: err}
 	}
 
-	logger.Log(LogDebug, funcname, messageParts...)
-}
-
-func (logger *Logger) Info(messageParts ...string) {
-	pc, _, _, ok := runtime.Caller(1)
-	funcname := runtime.FuncForPC(pc).Name()
-	if !ok {
-		funcname = unknownFuncName
+	if err := logger.File.Close(); err != nil {
+		return &CloseError{Err: err}
 	}
 
-	logger.Log(LogInfo, funcname, messageParts...)
-}
-
-func (logger *Logger) Error(messageParts ...string) {
-	pc, _, _, ok := runtime.Caller(1)
-	funcname := runtime.FuncForPC(pc).Name()
-	if !ok {
-		funcname = unknownFuncName
-	}
-
-	logger.Log(LogError, funcname, messageParts...)
-}
-
-func (logger *Logger) Fatal(messageParts ...string) {
-	pc, _, _, ok := runtime.Caller(1)
-	funcname := runtime.FuncForPC(pc).Name()
-	if !ok {
-		funcname = unknownFuncName
-	}
-
-	logger.Log(LogFatal, funcname, messageParts...)
-	os.Exit(1)
+	return nil
 }
